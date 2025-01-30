@@ -45,6 +45,7 @@ from chip.testing.matter_testing import (MatterBaseTest, TestStep, default_matte
 from mobly import asserts
 from test_plan_support import commission_if_required, read_attribute, verify_success
 from typing import Optional
+import time
 
 
 logger = logging.getLogger(__name__)
@@ -74,7 +75,7 @@ class TC_CC_2_1(MatterBaseTest):
             TestStep(8, "TH reads from the DUT the (0x0006) CompensationText attribute"),
             TestStep(9, "TH reads from the DUT the (0x0007) ColorTemperatureMireds attribute"),
             TestStep(10, "TH reads from the DUT the (0x0008) ColorMode attribute"),
-            # TestStep(11, "TH reads from the DUT the (0x000f) Options attribute"),
+            TestStep(11, "TH reads from the DUT the (0x000f) Options attribute"),
             TestStep(12, "TH reads from the DUT the (0x4000) EnhancedCurrentHue attribute"),
             TestStep(13, "TH reads from the DUT the (0x4001) EnhancedColorMode attribute"),
             TestStep(14, "TH reads from the DUT the (0x4002) ColorLoopActive attribute"),
@@ -82,31 +83,31 @@ class TC_CC_2_1(MatterBaseTest):
             TestStep(16, "TH reads from the DUT the (0x4004) ColorLoopTime attribute"),
             TestStep(17, "TH reads from the DUT the (0x4005) ColorLoopStartEnhancedHue attribute"),
             TestStep(18, "TH reads from the DUT the (0x4006) ColorLoopStoredEnhancedHue attributeT"),
-            # TestStep("18a", "Saving for comparision in step 19 reads FeatureMap attribute from DUT"),
-            # TestStep(19, "TH reads from the DUT the (0x400a) ColorCapabilities attribute"),
-            # TestStep(20, "TH reads from the DUT the (0x400b) ColorTempPhysicalMinMireds attribute"),
-            # TestStep(21, "TH reads from the DUT the (0x400c) ColorTempPhysicalMaxMireds attribute"),
-            # TestStep(22, "TH reads from the DUT the (0x400d) CoupleColorTempToLevelMinMireds attribute"),
-            # TestStep(23, "TH reads from the DUT the (0x4010) StartUpColorTemperatureMireds attribute"),
-            # TestStep(24, "TH reads from the DUT the (0x0010) NumberOfPrimaries attribute"),
-            # TestStep(25, "TH reads Primary1X attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 1 or more"),
-            # TestStep(26, "TH reads Primary1Y attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 1 or more"),
-            # TestStep(27, "TH reads Primary1Intensity attribute from DUT and Verify that the DUT response contains an uint8 if NumberOfPrimaries is 1 or more"),
-            # TestStep(28, "TH reads Primary2X attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 2 or more"),
-            # TestStep(29, "TH reads Primary2Y attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 2 or more"),
-            # TestStep(30, "TH reads Primary2Intensity attribute from DUT and Verify that the DUT response contains an uint8 if NumberOfPrimaries is 2 or more"),
-            # TestStep(31, "TH reads Primary3X attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 3 or more"),
-            # TestStep(32, "TH reads Primary3Y attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 3 or more"),
-            # TestStep(33, "TH reads Primary3Intensity attribute from DUT and Verify that the DUT response contains an uint8 if NumberOfPrimaries is 3 or more"),
-            # TestStep(34, "TH reads Primary4X attribute from DUT Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 4 or more"),
-            # TestStep(35, "TH reads Primary4Y attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 4 or more"),
-            # TestStep(36, "TH reads Primary4Intensity attribute from DUT and Verify that the DUT response contains an uint8 if NumberOfPrimaries is 4 or more"),
-            # TestStep(37, "TH reads Primary5X attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 5 or more"),
-            # TestStep(38, "TH reads Primary5Y attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 5 or more"),
-            # TestStep(39, "TH reads Primary5Intensity attribute from DUT and Verify that the DUT response contains an uint8 if NumberOfPrimaries is 5 or more"),
-            # TestStep(40, "TH reads Primary6X attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 6 or more"),
-            # TestStep(41, "TH reads Primary6Y attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 6 or more"),
-            # TestStep(42, "TH reads Primary6Intensity attribute from DUT and Verify that the DUT response contains an uint8 if NumberOfPrimaries is 6 or more"),
+            TestStep("18.a", "Saving for comparision in step 19 reads FeatureMap attribute from DUT"),
+            TestStep(19, "TH reads from the DUT the (0x400a) ColorCapabilities attribute"),
+            TestStep(20, "TH reads from the DUT the (0x400b) ColorTempPhysicalMinMireds attribute"),
+            TestStep(21, "TH reads from the DUT the (0x400c) ColorTempPhysicalMaxMireds attribute"),
+            TestStep(22, "TH reads from the DUT the (0x400d) CoupleColorTempToLevelMinMireds attribute"),
+            TestStep(23, "TH reads from the DUT the (0x4010) StartUpColorTemperatureMireds attribute"),
+            TestStep(24, "TH reads from the DUT the (0x0010) NumberOfPrimaries attribute"),
+            TestStep(25, "TH reads Primary1X attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 1 or more"),
+            TestStep(26, "TH reads Primary1Y attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 1 or more"),
+            TestStep(27, "TH reads Primary1Intensity attribute from DUT and Verify that the DUT response contains an uint8 if NumberOfPrimaries is 1 or more"),
+            TestStep(28, "TH reads Primary2X attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 2 or more"),
+            TestStep(29, "TH reads Primary2Y attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 2 or more"),
+            TestStep(30, "TH reads Primary2Intensity attribute from DUT and Verify that the DUT response contains an uint8 if NumberOfPrimaries is 2 or more"),
+            TestStep(31, "TH reads Primary3X attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 3 or more"),
+            TestStep(32, "TH reads Primary3Y attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 3 or more"),
+            TestStep(33, "TH reads Primary3Intensity attribute from DUT and Verify that the DUT response contains an uint8 if NumberOfPrimaries is 3 or more"),
+            TestStep(34, "TH reads Primary4X attribute from DUT Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 4 or more"),
+            TestStep(35, "TH reads Primary4Y attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 4 or more"),
+            TestStep(36, "TH reads Primary4Intensity attribute from DUT and Verify that the DUT response contains an uint8 if NumberOfPrimaries is 4 or more"),
+            TestStep(37, "TH reads Primary5X attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 5 or more"),
+            TestStep(38, "TH reads Primary5Y attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 5 or more"),
+            TestStep(39, "TH reads Primary5Intensity attribute from DUT and Verify that the DUT response contains an uint8 if NumberOfPrimaries is 5 or more"),
+            TestStep(40, "TH reads Primary6X attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 6 or more"),
+            TestStep(41, "TH reads Primary6Y attribute from DUT and Verify that the DUT response contains an uint16 [Min:0 Max:0xfeff] if NumberOfPrimaries is 6 or more"),
+            TestStep(42, "TH reads Primary6Intensity attribute from DUT and Verify that the DUT response contains an uint8 if NumberOfPrimaries is 6 or more"),
             TestStep(43, "TH reads from the DUT the (0x0030) WhitePointX attribute"),
             TestStep(44, "TH reads from the DUT the (0x0031) WhitePointY attribute"),
             TestStep(45, "TH reads from the DUT the (0x0032) ColorPointRX attribute"),
@@ -123,7 +124,7 @@ class TC_CC_2_1(MatterBaseTest):
         return steps
 
     async def _verify_attribute(self,attribute:str, data_type:str,enum_range:Optional[list]=None,min_len:Optional[int]=None,max_len:Optional[int]=None):
-        """Verify the attribut exists and value the specific type of value
+        """Verify the attribute exists and value is the specific type of value.
 
         Args:
             attribute (str): Name of the attribute we want to retrieve
@@ -131,7 +132,7 @@ class TC_CC_2_1(MatterBaseTest):
             enum_range (list, optional): Range that the enum may have. 0-2 or 0-5. Defaults to Optional[list].
             max_len (int, optional): Limit of data type may be used with string and uint*. Defaults to Optional[int].
         """
-        logger.info(f"Vefirying the attribute {attribute} shuold be {data_type}")
+        logger.info(f"Vefirying the attribute {attribute} should be {data_type}")
         try:
             tmp_attr = getattr(Clusters.ColorControl.Attributes,attribute)
         except AttributeError as e:
@@ -180,15 +181,46 @@ class TC_CC_2_1(MatterBaseTest):
         
         return attr_val
     
-    def ask_for_porperty_value(self, numberofprimaries_condition:int=0):
+    def verify_for_numberofprimaries_value(self,numberofprimaries_value:Optional[int]=None,numberofprimaries_condition:int=0) -> bool:
+        """Verify the numbrofprimaries attribute value against the condition. Return the status to skip tests.
 
+        Args:
+            numberofprimaries_value (Optional[int], optional): _description_. Defaults to None.
+            numberofprimaries_condition (int, optional): _description_. Defaults to 0.
+            skip_steps (list, optional): _description_. Defaults to [].
+
+        Returns:
+            bool: Return the status of skipping verification.
+        """
+        logger.info(f"Working on ci ? {self.is_ci}")
+        skip_tests = False
         if not self.is_ci:
-            user_response = self.wait_for_user_input(prompt_msg=f"Is numbr of primaries {numberofprimaries_condition} or more?. 
-                            Enter 'y' or 'n' to confirm.", default_value="y")
-            if user_response == numberofprimaries_condition:
-                self.skip_step()
+            user_response = self.wait_for_user_input(prompt_msg=f"Is numberOfPrimaries {numberofprimaries_condition} or more?. Enter 'y' or 'n' to confirm.", default_value="y")
+            if user_response == 'n':
+                logger.info(f"Number of primaries it not {numberofprimaries_condition} or more, skipping steps.")
+                skip_tests = True
+            else:
+                logger.info(f"Number of primaries meet the critria, {numberofprimaries_condition} or more.")
+        else:
+            logger.info(f"Verifying the value of numberofprimaries {numberofprimaries_value} is greater than {numberofprimaries_condition} ?")
+            # is not equal or greater than
+            if numberofprimaries_value < numberofprimaries_condition:
+                skip_tests = True
 
+        return skip_tests
 
+    def skip_test_steps(self,steps:list=[]):
+        for step in steps:
+            self.skip_step(step)
+
+    def verify_first_4bits(self,a,b):
+        # get the first 4 bits and compare them
+        tmp_a = a & (2**4-1)
+        tmp_b = b & (2**4-1)
+        logger.info("Verifying if first 4 bits are equal.")
+        logger.info(f"Num a : {bin(tmp_a)}")
+        logger.info(f"Num b : {bin(tmp_b)}")
+        asserts.assert_equal(tmp_a,tmp_b,"Numbers are not equal in bit after bit comparsion")
 
     @async_test_body
     async def test_TC_CC_2_1(self):
@@ -225,9 +257,8 @@ class TC_CC_2_1(MatterBaseTest):
         self.step(10)
         await self._verify_attribute("ColorMode","enum",enum_range=range(0,3))
 
-
-        # self.step(11)
-        # await self._verify_attribute("Options","enum",range(0,3))
+        self.step(11)
+        await self._verify_attribute("Options","uint8",max_len=4)
 
         self.step(12)
         await self._verify_attribute("EnhancedCurrentHue","uint16")
@@ -252,108 +283,121 @@ class TC_CC_2_1(MatterBaseTest):
         self.step(18)
         await self._verify_attribute("ColorLoopStoredEnhancedHue","uint16")
 
-        # map16
-        # self.step(19)
-        # await self._verify_attribute("ColorCapabilities","enum")
+        self.step("18.a")
+        # read and save FeatureMap attribute
+        feature_map_value = await self.read_single_attribute_check_success(
+            endpoint=self.endpoint,
+            cluster=self.cluster,
+            attribute=self.cluster.Attributes.FeatureMap
+        )
 
+        self.step(19)
+        color_capabilities_value = await self._verify_attribute("ColorCapabilities","uint16",max_len=0x001f)
+        # verify the first 4 bits of colorcapabilities are the same on FeatureMap
+        self.verify_first_4bits(feature_map_value,color_capabilities_value)
+        time.sleep(5)
 
-        # self.step(20)
-        # await self._verify_attribute("ColorTempPhysicalMinMireds","uint16",max_len=0xfeff)
+        self.step(20)
+        await self._verify_attribute("ColorTempPhysicalMinMireds","uint16",max_len=0xfeff)
 
-        # self.step(21)
-        # await self._verify_attribute("ColorTempPhysicalMaxMireds","uint16",max_len=0xfeff)
+        self.step(21)
+        await self._verify_attribute("ColorTempPhysicalMaxMireds","uint16",max_len=0xfeff)
 
-        # self.step(22)
-        # await self._verify_attribute("CoupleColorTempToLevelMinMireds","uint16",max_len=0xfeff)
+        self.step(22)
+        await self._verify_attribute("CoupleColorTempToLevelMinMireds","uint16",max_len=0xfeff)
 
-        # self.step(23)
-        # await self._verify_attribute("StartUpColorTemperatureMireds","uint16",max_len=0xfeff)
+        self.step(23)
+        sctmr_val =  await self.read_single_attribute_check_success(
+            endpoint=self.endpoint,
+            cluster=self.cluster,
+            attribute=self.cluster.Attributes.StartUpColorTemperatureMireds
+        )
+        asserts.assert_true(sctmr_val is None or ( sctmr_val >= 1) and (sctmr_val <= 65279),"Value is out of range.")
         
-        # self.step(24)
-        # await self._verify_attribute("NumberOfPrimaries","uint16",max_len=0xfeff)
-
-        # TODO PROMPT
-        # self.step(25)
-        # await self._verify_attribute("Primary1X","uint16",max_len=0xfeff)
-
-        # TODO PROMPT
-        # self.step(26)
-        # await self._verify_attribute("Primary1Y","uint16",max_len=0xfeff)
+        self.step(24)
+        numberofprimaries_value = await self._verify_attribute("NumberOfPrimaries","uint16",max_len=6)
         
-        # TODO PROMPT
-        # self.step(27)
-        # await self._verify_attribute("Primary1Intensity","uint16",max_len=0xfeff)
+        # verify for numberofprimaries section
+        skip_steps_verifyp1 = self.verify_for_numberofprimaries_value(numberofprimaries_value,1)
+        if skip_steps_verifyp1:
+            self.skip_test_steps(steps=[25,26,27])
+        else:
+            self.step(25)
+            await self._verify_attribute("Primary1X","uint16",max_len=0xfeff)
 
+            self.step(26)
+            await self._verify_attribute("Primary1Y","uint16",max_len=0xfeff)
 
-        # TODO PROMPT
-        # self.step(28)
-        # await self._verify_attribute("Primary2X","uint16",max_len=0xfeff)
+            self.step(27)
+            await self._verify_attribute("Primary1Intensity","uint16",max_len=0xfeff)
 
+        skip_steps_verifyp2 = self.verify_for_numberofprimaries_value(numberofprimaries_value,2)
+        if skip_steps_verifyp2:
+            self.skip_test_steps(steps=[28,29,30])
+        else:
+            self.step(28)
+            await self._verify_attribute("Primary2X","uint16",max_len=0xfeff)
 
-        # TODO PROMPT
-        # self.step(29)
-        # await self._verify_attribute("Primary2Y","uint16",max_len=0xfeff)
+            self.step(29)
+            await self._verify_attribute("Primary2Y","uint16",max_len=0xfeff)
 
-
-        # TODO PROMPT
-        # self.step(30)
-        # await self._verify_attribute("Primary2Intensity","uint16",max_len=0xfeff)
-
-        # TODO PROMPT
-        # self.step(31)
-        # await self._verify_attribute("Primary3X","uint16",max_len=0xfeff)
-
-        # TODO PROMPT
-        # self.step(32)
-        # await self._verify_attribute("Primary3Y","uint16",max_len=0xfeff)
-
-        # TODO PROMPT
-        # self.step(33)
-        # await self._verify_attribute("Primary3Intensity","uint16",max_len=0xfeff)
-
-
-        # TODO PROMPT
-        # self.step(34)
-        # await self._verify_attribute("Primary4X","uint16",max_len=0xfeff)
-
-
-        # TODO PROMPT
-        # self.step(35)
-        # await self._verify_attribute("Primary4Y","uint16",max_len=0xfeff)
-
-
-        # TODO PROMPT
-        # self.step(36)
-        # await self._verify_attribute("Primary4Intensity","uint16",max_len=0xfeff)
-
-
-        # TODO PROMPT
-        # self.step(37)
-        # await self._verify_attribute("Primary5X","uint16",max_len=0xfeff)
-
-
-        # TODO PROMPT
-        # self.step(38)
-        # await self._verify_attribute("Primary5Y","uint16",max_len=0xfeff)
-        
-
-        # TODO PROMPT
-        # self.step(39)
-        # await self._verify_attribute("Primary5Intensity","uint16",max_len=0xfeff)
-
-
-        # TODO PROMPT
-        # self.step(40)
-        # await self._verify_attribute("Primary6X","uint16",max_len=0xfeff)
+            self.step(30)
+            await self._verify_attribute("Primary2Intensity","uint16",max_len=0xfeff)
     
-        # TODO PROMPT
-        # self.step(41)
-        # await self._verify_attribute("Primary6Y","uint16",max_len=0xfeff)
+        skip_steps_verifyp3 = self.verify_for_numberofprimaries_value(numberofprimaries_value,3)
+        if skip_steps_verifyp3:
+            self.skip_test_steps(steps=[31,32,33])
+        else:
+            self.step(31)
+            await self._verify_attribute("Primary3X","uint16",max_len=0xfeff)
+
+            self.step(32)
+            await self._verify_attribute("Primary3Y","uint16",max_len=0xfeff)
+
+            self.step(33)
+            await self._verify_attribute("Primary3Intensity","uint16",max_len=0xfeff)
+
+        skip_steps_verifyp4 = self.verify_for_numberofprimaries_value(numberofprimaries_value,4)
+        if skip_steps_verifyp4:
+            self.skip_test_steps([34,35,36])
+        else:
+            self.step(34)
+            await self._verify_attribute("Primary4X","uint16",max_len=0xfeff)
+
+            self.step(35)
+            await self._verify_attribute("Primary4Y","uint16",max_len=0xfeff)
+
+            self.step(36)
+            await self._verify_attribute("Primary4Intensity","uint16",max_len=0xfeff)
 
 
-        # TODO PROMPT
-        # self.step(42)
-        # await self._verify_attribute("Primary6Intensity","uint16",max_len=0xfeff)
+        skip_steps_verifyp5 =self.verify_for_numberofprimaries_value(numberofprimaries_value,5)
+        if skip_steps_verifyp5:
+            self.skip_test_steps(steps=[37,38,39])
+        else:
+            self.step(37)
+            await self._verify_attribute("Primary5X","uint16",max_len=0xfeff)
+
+            self.step(38)
+            await self._verify_attribute("Primary5Y","uint16",max_len=0xfeff)
+
+            self.step(39)
+            await self._verify_attribute("Primary5Intensity","uint16",max_len=0xfeff)
+        
+
+        skip_steps_verifyp6 = self.verify_for_numberofprimaries_value(numberofprimaries_value,6)
+        if skip_steps_verifyp6:
+            self.skip_test_steps(steps=[40,41,42])
+        else:
+            self.step(40)
+            await self._verify_attribute("Primary6X","uint16",max_len=0xfeff)
+        
+            self.step(41)
+            await self._verify_attribute("Primary6Y","uint16",max_len=0xfeff)
+
+            self.step(42)
+            await self._verify_attribute("Primary6Intensity","uint16",max_len=0xfeff)
+        # no more check numberofprimaries at this point
 
         self.step(43)
         await self._verify_attribute("WhitePointX","uint16",max_len=0xfeff)
