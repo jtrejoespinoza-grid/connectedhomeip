@@ -36,15 +36,15 @@
 # === END CI TEST ARGUMENTS ===
 
 import logging
+import time
+from typing import Any, Optional, Union
+
 import chip.clusters as Clusters
 from chip.clusters import ClusterObjects as ClusterObjects
 from chip.clusters.ClusterObjects import ClusterAttributeDescriptor
 from chip.testing import matter_asserts
-from chip.testing.matter_testing import (MatterBaseTest, TestStep, default_matter_test_main, async_test_body, has_attribute)
+from chip.testing.matter_testing import MatterBaseTest, TestStep, async_test_body, default_matter_test_main, has_attribute
 from mobly import asserts
-from typing import Union, Optional, Any
-import time
-
 
 logger = logging.getLogger(__name__)
 
