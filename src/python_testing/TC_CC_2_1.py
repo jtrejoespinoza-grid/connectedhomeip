@@ -28,7 +28,6 @@
 #       --commissioning-method on-network
 #       --discriminator 1234
 #       --passcode 20202021
-#       --PICS src/app/tests/suites/certification/ci-pics-values
 #       --endpoint 1
 #       --trace-to json:${TRACE_TEST_JSON}.json
 #       --trace-to perfetto:${TRACE_TEST_PERFETTO}.perfetto
@@ -136,7 +135,7 @@ class TC_CC_2_1(MatterBaseTest):
         return steps
 
     async def _guard_and_read_attribute(self, attribute: str) -> Union[bool, Any]:
-        """_summary_
+        """Check using guard and reads the attribute value.
         Args:
             attribute (str): Attribute name from the cluster.
         Returns:
@@ -167,7 +166,8 @@ class TC_CC_2_1(MatterBaseTest):
             attribute (str): Name of the attribute we want to retrieve
             data_type (str): type of data we want to validate against (uint8,uint16,uint32,string,enum)
             enum_range (list, optional): Range that the enum may have. 0-2 or 0-5. Defaults to Optional[list].
-            max_len (int, optional): Limit of data type may be used with string and uint*. Defaults to Optional[int].
+            min_len (int, optional): If present verify the low range of the attribute.
+            max_len (int, optional): If present verify the high range of the attribute.
         """
         # If attribute_guard return false it set the current step as skipped so we can finish the step here.
         guard_status, attr_val = await self._guard_and_read_attribute(attribute=attribute)
@@ -223,8 +223,6 @@ class TC_CC_2_1(MatterBaseTest):
         Args:
             numberofprimaries_value (Optional[int], optional): _description_. Defaults to None.
             numberofprimaries_condition (int, optional): _description_. Defaults to 0.
-            skip_steps (list, optional): _description_. Defaults to [].
-
         Returns:
             bool: Return the status of skipping verification.
         """
