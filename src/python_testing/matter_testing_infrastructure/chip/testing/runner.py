@@ -53,7 +53,7 @@ except ImportError:
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from chip.testing.matter_testing import MatterTestConfig
+    from chip.testing.matter_test_config import MatterTestConfig
 
 _DEFAULT_LOG_PATH = "/tmp/matter_testing/logs"
 

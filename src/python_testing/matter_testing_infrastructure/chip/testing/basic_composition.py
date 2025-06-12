@@ -33,7 +33,8 @@ import chip.tlv
 from chip.ChipDeviceCtrl import ChipDeviceController
 from chip.clusters.Attribute import ValueDecodeFailure
 from chip.testing.conformance import ConformanceException
-from chip.testing.matter_testing import MatterTestConfig, ProblemNotice
+from chip.testing.matter_testing import ProblemNotice
+from chip.testing.matter_test_config import MatterTestConfig
 from chip.testing.spec_parsing import PrebuiltDataModelDirectory, build_xml_clusters, build_xml_device_types, dm_from_spec_version
 from mobly import asserts
 
