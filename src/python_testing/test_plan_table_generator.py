@@ -22,8 +22,8 @@ import sys
 from pathlib import Path
 
 import click
-from chip.testing.matter_testing import generate_mobly_test_config
 from chip.testing.matter_test_config import MatterTestConfig
+from chip.testing.runner import generate_mobly_test_config
 
 
 def indent_multiline(multiline: str, num_spaces: int) -> str:

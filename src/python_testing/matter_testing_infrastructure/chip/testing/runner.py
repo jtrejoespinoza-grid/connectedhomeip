@@ -27,7 +27,9 @@ from pathlib import Path
 from typing import Optional
 from unittest.mock import MagicMock
 
+
 from chip.clusters import Attribute
+import chip.testing.matter_global_defaults as matter_global_defaults
 from mobly import signals
 from mobly.config_parser import ENV_MOBLY_LOGPATH, TestRunConfig
 from mobly.test_runner import TestRunner
@@ -54,8 +56,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from chip.testing.matter_test_config import MatterTestConfig
-
-_DEFAULT_LOG_PATH = "/tmp/matter_testing/logs"
 
 
 class InternalTestRunnerHooks(TestRunnerHooks):
@@ -229,7 +229,7 @@ def generate_mobly_test_config(matter_test_config):
     test_run_config.testbed_name = "MatterTest"
 
     log_path = matter_test_config.logs_path
-    log_path = _DEFAULT_LOG_PATH if log_path is None else log_path
+    log_path = matter_global_defaults._DEFAULT_LOG_PATH if log_path is None else log_path
     if ENV_MOBLY_LOGPATH in os.environ:
         log_path = os.environ[ENV_MOBLY_LOGPATH]
 
@@ -483,7 +483,8 @@ class MockTestRunner():
     def __init__(self, abs_filename: str, classname: str, test: str, endpoint: int = None,
                  pics: dict[str, bool] = None, paa_trust_store_path=None):
 
-        from chip.testing.matter_testing import MatterStackState, MatterTestConfig
+        from chip.testing.matter_testing import MatterStackState
+        from chip.testing.matter_test_config import MatterTestConfig
 
         self.kvs_storage = 'kvs_admin.json'
         self.config = MatterTestConfig(endpoint=endpoint, paa_trust_store_path=paa_trust_store_path,
