@@ -37,7 +37,12 @@ from ..interaction_model import (AttributePathIBstruct, DataVersionFilterIBstruc
 from ..interaction_model import Status as InteractionModelStatus
 from ..native import ErrorSDKPart, GetLibraryHandle, NativeLibraryHandleMethodArguments, PyChipError
 from ..tlv import TLVReader
-from . import Objects as GeneratedObjects  # noqa: F401
+try:
+    from . import Objects as GeneratedObjects  # noqa: F401
+except ImportError as e:
+    # This is already imported
+    print(f"MSG {e}")
+    pass
 from .ClusterObjects import Cluster, ClusterAttributeDescriptor, ClusterEvent
 
 LOGGER = logging.getLogger(__name__)

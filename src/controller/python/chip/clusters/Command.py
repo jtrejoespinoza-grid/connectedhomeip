@@ -29,7 +29,12 @@ from ..interaction_model import InteractionModelError, PyInvokeRequestData
 from ..interaction_model import Status as InteractionModelStatus
 from ..interaction_model import TestOnlyPyBatchCommandsOverrides, TestOnlyPyOnDoneInfo
 from ..native import GetLibraryHandle, NativeLibraryHandleMethodArguments, PyChipError
-from . import Objects as GeneratedObjects  # noqa: F401
+try:
+    from . import Objects as GeneratedObjects  # noqa: F401
+except ImportError as e:
+    print("Avoid import error {e}")
+    pass
+
 from .ClusterObjects import ClusterCommand
 
 logger = logging.getLogger('chip.cluster.Command')

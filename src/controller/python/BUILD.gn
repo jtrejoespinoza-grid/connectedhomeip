@@ -264,7 +264,6 @@ chip_python_wheel_action("chip-core") {
     "chip.logging",
     "chip.yaml",
     "chip.native",
-    "chip.clusters",
     "chip.setup_payload",
     "chip.storage",
     "chip.tracing",
@@ -373,9 +372,42 @@ chip_python_wheel_action("chip-repl") {
     {
       src_dir = "."
       sources = [
+        "chip/__init__.py",
+        "chip/bdx/__init__.py",
+        "chip/bdx/Bdx.py",
+        "chip/bdx/BdxProtocol.py",
+        "chip/bdx/BdxTransfer.py",
+        "chip/interaction_model/__init__.py",
+        "chip/interaction_model/delegate.py",
         "chip/ChipBluezMgr.py",
+        "chip/ChipStack.py",
+        "chip/ChipUtility.py",
+        "chip/clusters/__init__.py",
+        "chip/clusters/Attribute.py",
+        "chip/clusters/Command.py",
+        "chip/clusters/CHIPClusters.py",
+        "chip/clusters/ClusterObjects.py",
+        "chip/clusters/Types.py",
+        "chip/clusters/enum.py",
+        "chip/crypto/__init__.py",
+        "chip/crypto/fabric.py",
+        "chip/crypto/p256keypair.py",
+        "chip/discovery/__init__.py",
+        "chip/discovery/library_handle.py",
+        "chip/discovery/types.py",
+        "chip/exceptions/__init__.py",
+        "chip/FabricAdmin.py",
         "chip/ChipCoreBluetoothMgr.py",
+        "chip/CertificateAuthority.py",
         "chip/ChipReplStartup.py",
+        "chip/ChipDeviceCtrl.py",
+        "chip/logging/__init__.py",
+        "chip/logging/library_handle.py",
+        "chip/logging/types.py",
+        "chip/native/__init__.py",
+        "chip/storage/__init__.py",
+        "chip/tlv/__init__.py",
+        "chip/tlv/tlvlist.py",
       ]
       sources += py_scripts
     },
@@ -387,10 +419,25 @@ chip_python_wheel_action("chip-repl") {
 
   inputs = []
 
-  py_packages = [ "chip" ]
+  py_packages = [ 
+    "chip",
+    "chip.bdx",
+    "chip.clusters",
+    "chip.crypto",
+    "chip.exceptions",
+    "chip.discovery",
+    "chip.interaction_model",
+    "chip.logging",
+    "chip.native",
+    "chip.storage",
+    "chip.tlv",
+    ]
 
   py_package_reqs = [
     "coloredlogs",
+    "construct",
+    "dacite",
+    "ecdsa",
 
     #
     # IPython 7.30.0 has a bug which results in the use of await ... failing on some platforms (see https://github.com/ipython/ipython/pull/13269)
