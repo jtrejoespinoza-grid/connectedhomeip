@@ -742,6 +742,7 @@ def convert_args_to_matter_config(args: argparse.Namespace):
 
     # Map CLI arg to the current config field name used by tests
     config.pipe_name = args.app_pipe
+    config.out_pipe_name = args.out_pipe
     if config.pipe_name is not None and not os.path.exists(config.pipe_name):
         # Named pipes are unique, so we MUST have consistent paths
         # Verify from start the named pipe exists.
@@ -807,6 +808,8 @@ def parse_matter_test_args(argv: Optional[List[str]] = None):
                              'and NodeID to assign if commissioning (default: %d)' % TestingDefaults.DUT_NODE_ID, nargs="+")
     basic_group.add_argument('--endpoint', type=int, default=None, help="Endpoint under test")
     basic_group.add_argument('--app-pipe', type=str, default=None, help="The full path of the app to send an out-of-band command")
+    basic_group.add_argument('--out-pipe', type=str, default=None,
+                             help="The full path of the app to read an out-of-band command output")
     basic_group.add_argument('--restart-flag-file', type=str, default=None,
                              help="The full path of the file to use to signal a restart to the app")
     basic_group.add_argument('--timeout', type=int, help="Test timeout in seconds")

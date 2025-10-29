@@ -1026,6 +1026,74 @@ class MatterBaseTest(base_test.BaseTestClass):
             cmd = "echo \"%s\" | ssh %s@%s \'cat > %s\'" % (command_fixed, dut_uname, dut_ip, app_pipe)
             os.system(cmd)
 
+    def read_from_app_pipe(self, command: str, out_pipe: Optional[str] = None) -> dict:
+        """
+        Read from an out-of-band command response from Matter app.
+        Args:
+            command (str): string  with the name of the command to read.
+            out_pipe (Optional[str], optional): Name of the out pipe to read  (i.e. /tmp/chip_all_clusters_out_fifo or /tmp/chip_rvc_out_fifo). Raises
+            FileNotFoundError if out pipe file is not found. If None takes the value from the CI argument --out-pipe,  arg --out-pipe has his own file exists check.
+        Returns:
+            out_pipe_data (dict) : Data from the response from the command if it was found.
+
+        This method uses the following environment variables:
+         - LINUX_DUT_IP
+            * if not provided, the Matter app is assumed to run on the same machine as the test,
+              such as during CI, and the commands are sent to it using a local named pipe
+            * if provided, the commands for writing to the named pipe are forwarded to the DUT
+        - LINUX_DUT_USER
+            * if LINUX_DUT_IP is provided, use this for the DUT user name
+            * If a remote password is needed, set up ssh keys to ensure that this script can log in to the DUT without a password:
+                 + Step 1: If you do not have a key, create one using ssh-keygen
+                 + Step 2: Authorize this key on the remote host: run ssh-copy-id user@ip once, using your password
+                 + Step 3: From now on ssh user@ip will no longer ask for your password
+        """
+        # If is not empty from the args, verify if the fifo file exists.
+        if out_pipe is not None and not os.path.exists(out_pipe):
+            LOGGER.error("Named pipe %r does NOT exist" % out_pipe)
+            raise FileNotFoundError("CANNOT FIND %r" % out_pipe)
+
+        if app_pipe is None:
+            app_pipe = self.matter_test_config.out_pipe_name
+
+        if not isinstance(app_pipe, str):
+            raise TypeError("The named out pipe must be provided as a string value")
+
+        if not isinstance(command, str):
+            raise TypeError("The command must be passed string value")
+
+        dut_ip = os.getenv('LINUX_DUT_IP')
+        out_pipe_data = ""
+        if dut_ip is None:
+            with open(out_pipe, "r") as app_pipe_fp:
+                LOGGER.info(f"Reading out-of-band command: from file: {out_pipe}")
+                lines = app_pipe_fp.read()
+                if len(lines) > 1:
+                    # There are a lot of commands in there
+                    raise ValueError("Multiple values from out_pipe")
+
+                if len(lines) > 0:
+                    # There are a lot of commands in there
+                    raise ValueError("Out pipe is empty")
+
+                out_pipe_data = lines[0]
+
+            # now read if the line if from the command we sent
+            out_pipe_data = json.load(out_pipe_data)
+            if out_pipe_data.get("Command") != command:
+                raise ValueError(f"This output does not beling to the action {command}")
+            return out_pipe_data
+        else:
+            # TEST PENDING
+            LOGGER.info(f"Using DUT IP address: {dut_ip}")
+
+            dut_uname = os.getenv('LINUX_DUT_USER')
+            asserts.assert_true(dut_uname is not None, "The LINUX_DUT_USER environment variable must be set")
+            LOGGER.info(f"Using DUT user name: {dut_uname}")
+            # command_fixed = shlex.quote(json.dumps(command_dict))
+            cmd = "ssh %s@%s \'cat  %s\'" % (dut_uname, dut_ip, out_pipe)
+            os.system(cmd)
+
     async def send_single_cmd(
             self, cmd: Clusters.ClusterObjects.ClusterCommand,
             dev_ctrl: Optional[ChipDeviceCtrl.ChipDeviceController] = None, node_id: Optional[int] = None, endpoint: Optional[int] = None,
