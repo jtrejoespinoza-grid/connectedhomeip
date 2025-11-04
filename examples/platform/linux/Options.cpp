@@ -720,7 +720,7 @@ bool HandleOption(const char * aProgram, OptionSet * aOptions, int aIdentifier, 
         LinuxDeviceOptions::GetInstance().app_pipe = aValue;
         break;
     case kDeviceOption_OutPipe:
-        LinuxDeviceOptions::GetInstance().out_pipe = aValue;
+        LinuxDeviceOptions::GetInstance().app_pipe_out = aValue;
         break;
     case kDeviceOption_InterfaceId:
         LinuxDeviceOptions::GetInstance().interfaceId =

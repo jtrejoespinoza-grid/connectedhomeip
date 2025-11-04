@@ -749,6 +749,13 @@ def convert_args_to_matter_config(args: argparse.Namespace):
         LOGGER.error("Named pipe %r does NOT exist" % config.pipe_name)
         raise FileNotFoundError("CANNOT FIND %r" % config.pipe_name)
 
+    config.pipe_name_out = args.pipe_name_out
+    if config.pipe_name_out is not None and not os.path.exists(config.pipe_name_out):
+        # Named pipes are unique, so we MUST have consistent paths
+        # Verify from start the named pipe exists.
+        LOGGER.error("Named pipe %r does NOT exist" % config.pipe_name_out)
+        raise FileNotFoundError("CANNOT FIND %r" % config.pipe_name_out)
+
     config.fail_on_skipped_tests = args.fail_on_skipped
 
     config.legacy = args.use_legacy_test_event_triggers
@@ -810,6 +817,7 @@ def parse_matter_test_args(argv: Optional[List[str]] = None):
     basic_group.add_argument('--app-pipe', type=str, default=None, help="The full path of the app to send an out-of-band command")
     basic_group.add_argument('--out-pipe', type=str, default=None,
                              help="The full path of the app to read an out-of-band command output")
+
     basic_group.add_argument('--restart-flag-file', type=str, default=None,
                              help="The full path of the file to use to signal a restart to the app")
     basic_group.add_argument('--timeout', type=int, help="Test timeout in seconds")
