@@ -742,15 +742,15 @@ def convert_args_to_matter_config(args: argparse.Namespace):
 
     # Map CLI arg to the current config field name used by tests
     config.pipe_name = args.app_pipe
-    config.out_pipe_name = args.out_pipe
+
     if config.pipe_name is not None and not os.path.exists(config.pipe_name):
         # Named pipes are unique, so we MUST have consistent paths
         # Verify from start the named pipe exists.
         LOGGER.error("Named pipe %r does NOT exist" % config.pipe_name)
         raise FileNotFoundError("CANNOT FIND %r" % config.pipe_name)
 
-    config.pipe_name_out = args.pipe_name_out
-    if config.pipe_name_out is not None and not os.path.exists(config.pipe_name_out):
+    config.out_pipe_name = args.out_pipe
+    if config.out_pipe_name is not None and not os.path.exists(config.out_pipe_name):
         # Named pipes are unique, so we MUST have consistent paths
         # Verify from start the named pipe exists.
         LOGGER.error("Named pipe %r does NOT exist" % config.pipe_name_out)

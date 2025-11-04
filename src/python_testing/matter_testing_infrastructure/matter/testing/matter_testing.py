@@ -16,6 +16,7 @@
 #
 
 import asyncio
+import fcntl
 import inspect
 import json
 import logging
@@ -970,26 +971,6 @@ class MatterBaseTest(base_test.BaseTestClass):
                                  f"Expected write success for write to attribute {attribute_value} on endpoint {endpoint_id}")
         return write_result[0].Status
 
-    def read_from_app_pipe(self, app_pipe_out: Optional[str] = None):
-        # If is not empty from the args, verify if the fifo file exists.
-        if app_pipe_out is not None and not os.path.exists(app_pipe_out):
-            LOGGER.error("Named pipe %r does NOT exist" % app_pipe_out)
-            raise FileNotFoundError("CANNOT FIND %r" % app_pipe_out)
-
-        if app_pipe_out is None:
-            app_pipe_out = self.matter_test_config.pipe_name_out
-
-        if not isinstance(app_pipe_out, str):
-            raise TypeError("The named pipe must be provided as a string value")
-
-        data = ""
-
-        with open(app_pipe_out, "r") as app_pipe_fp:
-            LOGGER.info(f"Reading out-of-band command response to file: {app_pipe_out}")
-            data = json.load(app_pipe_out)
-
-        return data
-
     def write_to_app_pipe(self, command_dict: dict, app_pipe: Optional[str] = None):
         """
         Send an out-of-band command to a Matter app.
@@ -1046,7 +1027,7 @@ class MatterBaseTest(base_test.BaseTestClass):
             cmd = "echo \"%s\" | ssh %s@%s \'cat > %s\'" % (command_fixed, dut_uname, dut_ip, app_pipe)
             os.system(cmd)
 
-    def read_from_app_pipe(self, command: str, out_pipe: Optional[str] = None) -> dict:
+    def read_from_app_pipe(self, command_name: str, out_pipe: Optional[str] = None) -> dict:
         """
         Read from an out-of-band command response from Matter app.
         Args:
@@ -1068,40 +1049,34 @@ class MatterBaseTest(base_test.BaseTestClass):
                  + Step 2: Authorize this key on the remote host: run ssh-copy-id user@ip once, using your password
                  + Step 3: From now on ssh user@ip will no longer ask for your password
         """
+        BUFFER_SIZE = 256
+        if out_pipe is None:
+            out_pipe = self.matter_test_config.out_pipe_name
+
+        if not isinstance(out_pipe, str):
+            raise TypeError("The named out pipe must be provided as a string value")
+
+        if not isinstance(command_name, str):
+            raise TypeError("The command must be passed string value")
+
         # If is not empty from the args, verify if the fifo file exists.
         if out_pipe is not None and not os.path.exists(out_pipe):
             LOGGER.error("Named pipe %r does NOT exist" % out_pipe)
             raise FileNotFoundError("CANNOT FIND %r" % out_pipe)
 
-        if app_pipe is None:
-            app_pipe = self.matter_test_config.out_pipe_name
-
-        if not isinstance(app_pipe, str):
-            raise TypeError("The named out pipe must be provided as a string value")
-
-        if not isinstance(command, str):
-            raise TypeError("The command must be passed string value")
+        LOGGER.info(f"About to read from {out_pipe}")
 
         dut_ip = os.getenv('LINUX_DUT_IP')
         out_pipe_data = ""
         if dut_ip is None:
             with open(out_pipe, "r") as app_pipe_fp:
                 LOGGER.info(f"Reading out-of-band command: from file: {out_pipe}")
-                lines = app_pipe_fp.read()
-                if len(lines) > 1:
-                    # There are a lot of commands in there
-                    raise ValueError("Multiple values from out_pipe")
-
-                if len(lines) > 0:
-                    # There are a lot of commands in there
-                    raise ValueError("Out pipe is empty")
-
-                out_pipe_data = lines[0]
-
+                out_pipe_data = app_pipe_fp.read(BUFFER_SIZE)
+            LOGGER.info(out_pipe_data)
             # now read if the line if from the command we sent
-            out_pipe_data = json.load(out_pipe_data)
-            if out_pipe_data.get("Command") != command:
-                raise ValueError(f"This output does not beling to the action {command}")
+            out_pipe_data = json.loads(out_pipe_data)
+            if out_pipe_data.get("Name") != command_name:
+                raise ValueError(f"This output does not beling to the action {command_name}")
             return out_pipe_data
         else:
             # TEST PENDING
@@ -1110,7 +1085,6 @@ class MatterBaseTest(base_test.BaseTestClass):
             dut_uname = os.getenv('LINUX_DUT_USER')
             asserts.assert_true(dut_uname is not None, "The LINUX_DUT_USER environment variable must be set")
             LOGGER.info(f"Using DUT user name: {dut_uname}")
-            # command_fixed = shlex.quote(json.dumps(command_dict))
             cmd = "ssh %s@%s \'cat  %s\'" % (dut_uname, dut_ip, out_pipe)
             os.system(cmd)
 
