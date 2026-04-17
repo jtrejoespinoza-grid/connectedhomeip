@@ -420,7 +420,6 @@ class SoftwareUpdateBaseTest(MatterBaseTest):
             current_progress = 0
 
         # Log strings
-
         log.info(f"Current OTA Image Download progress {current_progress}%")
         progress_seen = False
         current_max_progress = int(current_progress) + 1
@@ -444,15 +443,15 @@ class SoftwareUpdateBaseTest(MatterBaseTest):
                     progress_seen = True
             # Exit when the progress is under the
             current_progress = value
-            log.info(f"OTA Download: progress: {current_progress}% , current max:{current_max_progress}%, target {max_progress}%  ")
             return bool(value == current_max_progress and progress_seen) or value >= current_max_progress
 
         download_progress_attr_matcher_obj = AttributeMatcher.from_callable(
             description="Monitoring ota download ", matcher=check_ota_download_progress)
 
         while int(current_progress) < max_progress:
-            log.info(f"Current progress is {current_progress}% , waiting for reports to reach {current_max_progress}%")
 
+            log.info(f"Current OTA Image Download progress is {current_progress}% of total expected progress of: {max_progress}%")
+            log.info(f"Waiting download to reach the next chunk at {current_max_progress}% in a timeout of {max_timeout} seconds")
             # Handle subscribe issues
             if current_progress > current_max_progress:
                 current_max_progress = current_progress + 1
@@ -466,7 +465,6 @@ class SoftwareUpdateBaseTest(MatterBaseTest):
             if current_max_progress > max_progress:
                 current_max_progress = max_progress
             progress_seen = False
-            log.info(f"Current OTA Image Download progress {current_progress}%")
             download_progress_attr_handler.reset()
 
         # cancel the AttributeReportHandler
