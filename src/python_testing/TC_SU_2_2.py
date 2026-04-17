@@ -214,7 +214,7 @@ class TC_SU_2_2(SoftwareUpdateBaseTest):
 
     @async_test_body
     async def test_TC_SU_2_2(self):
-        self.LOG_FILE_PATH = "provider.log"
+        self.LOG_FILE_PATH = "/tmp/provider_2_2.log"
         self.KVS_PATH = "/tmp/chip_kvs_provider"
         self.provider_app_path = self.user_params.get('provider_app_path')
         self.ota_image = self.user_params.get('ota_image')
@@ -801,12 +801,12 @@ class TC_SU_2_2(SoftwareUpdateBaseTest):
         # Start AttributeSubscriptionHandler first to avoid missing any rapid OTA events (race condition)
         # Attributes: UpdateState and UpdateStateProgress (updateAvailable sequence)
         # ------------------------------------------------------------------------------------
-        subscription_attr = AttributeSubscriptionHandler(
+        update_state_attr = AttributeSubscriptionHandler(
             expected_cluster=Clusters.OtaSoftwareUpdateRequestor,
-            expected_attribute=None  # receive all attributes
+            expected_attribute=Clusters.OtaSoftwareUpdateRequestor.Attributes.UpdateState
         )
 
-        await subscription_attr.start(
+        await update_state_attr.start(
             dev_ctrl=controller,
             node_id=requestor_node_id,
             endpoint=0,
@@ -832,108 +832,25 @@ class TC_SU_2_2(SoftwareUpdateBaseTest):
             f'{step_number_s6}: Step #6.1 - Started subscription for UpdateState and UpdateStateProgress attributes. '
             'Waiting for the device to start downloading the image. This step may take several minutes to complete.')
 
-        state_sequence = []
-        progress_values = []
-        downloading_seen = False
-        progress_seen = False
+        # Let the device reach the kDownloading state by listening to the UpdateState attribute
+        update_state_match = AttributeMatcher.from_callable(
+            "Update state is Downloading",
+            lambda report: report.value == Clusters.OtaSoftwareUpdateRequestor.Enums.UpdateStateEnum.kDownloading)
+        update_state_attr.await_all_expected_report_matches([update_state_match], timeout_sec=600)
 
-        def matcher_combined(report):
-            """
-            Combined matcher for Step 6:
-            - Validates UpdateState reaches kDownloading
-            - UpdateStateProgress has any value 1-100
-            """
-            nonlocal state_sequence, progress_values, downloading_seen, progress_seen
-            val = getattr(report.value, "value", report.value)
+        # Once in downloading track the download progress up to 97% then wait for th kApplying state
+        # This verify an ota image transfer is happening
+        await self.track_download_progress(controller=controller, requestor_node_id=requestor_node_id, max_progress=97)
 
-            current_time = time.time()
-
-            # UpdateState
-            if report.attribute == Clusters.OtaSoftwareUpdateRequestor.Attributes.UpdateState:
-                if val is not None and val == Clusters.OtaSoftwareUpdateRequestor.Enums.UpdateStateEnum.kDownloading:
-                    if not downloading_seen:
-                        downloading_seen = True
-                        state_sequence.append(Clusters.OtaSoftwareUpdateRequestor.Enums.UpdateStateEnum.kDownloading)
-                        logger.info(f'{step_number_s6}: State observed: {val} at {current_time}')
-
-            # UpdateStateProgress
-            elif report.attribute == Clusters.OtaSoftwareUpdateRequestor.Attributes.UpdateStateProgress:
-                if val is not None and isinstance(val, int) and 1 <= val <= 100:
-                    if not progress_seen:
-                        progress_seen = True
-                        progress_values.append(val)
-                        logger.info(f'{step_number_s6}: Progress observed: {val} at {current_time}')
-
-            return downloading_seen and progress_seen
-
-        matcher_combined_obj = AttributeMatcher.from_callable(
-            description=f"{step_number_s6} - Step 6 matcher: Downloading + progress 1-100",
-            matcher=matcher_combined
-        )
-
-        # ------------------------------------------------------------------------------------
-        # [STEP_6]: Step #6.3 - Wait for download to start
-        # ------------------------------------------------------------------------------------
-        # Start the kApplying subscription before waiting for kDownloading/progress so there
-        # is no gap between the two subscriptions — kApplying could fire while subscription_attr
-        # is still active, and we must not miss it.
-        subscription_attr_applying = AttributeSubscriptionHandler(
-            expected_cluster=Clusters.OtaSoftwareUpdateRequestor,
-            expected_attribute=Clusters.OtaSoftwareUpdateRequestor.Attributes.UpdateState
-        )
-
-        await subscription_attr_applying.start(
-            dev_ctrl=controller,
-            node_id=requestor_node_id,
-            endpoint=0,
-            fabric_filtered=False,
-            min_interval_sec=0,
-            max_interval_sec=20,
-            keepSubscriptions=True
-        )
-
-        subscription_attr.await_all_expected_report_matches([matcher_combined_obj], timeout_sec=800.0)
-        logger.info(f'{step_number_s6}: Step #6.3 - UpdateState (Available sequence) matcher has completed.')
-        subscription_attr.cancel()
-
-        # ------------------------------------------------------------------------------------
-        # [STEP_6]: Step #6.4 - Verify image transfer from TH/OTA-P to DUT is successfully started.
-        # ------------------------------------------------------------------------------------
-        logger.info(f'{step_number_s6}: Step #6.4 - Full OTA state sequence observed: {state_sequence}')
-        logger.info(f'{step_number_s6}: Step #6.4 - Progress values observed: {progress_values}')
-
-        expected_flows = [
-            [Clusters.OtaSoftwareUpdateRequestor.Enums.UpdateStateEnum.kDownloading]
-        ]
-
-        if state_sequence in expected_flows:
-            logger.info(f'{step_number_s6}: Step #6.4 - OTA flow is valid: {state_sequence}')
-        else:
-            msg = f"Observed OTA flow: {state_sequence}, Expected one of: {expected_flows}"
-            asserts.fail(msg)
-
-        asserts.assert_true(any(1 <= v <= 100 for v in progress_values),
-                            f"{step_number_s6}: No valid UpdateStateProgress observed (1-100)")
-        logger.info(f'{step_number_s6}: Step #6.4 - UpdateStateProgress has valid value(s) in range 1-100')
-
-        # ------------------------------------------------------------------------------------
-        # [STEP_6]: Step #6.5 - Wait for kApplying to confirm the BDX transfer is fully
-        # complete, then kill the provider. The DUT will finish applying and reboot on its own.
-        # ------------------------------------------------------------------------------------
-        logger.info(f'{step_number_s6}: Step #6.5 - Waiting for kApplying to confirm download complete.')
-
-        def matcher_applying(report):
-            val = report.value
-            return val == Clusters.OtaSoftwareUpdateRequestor.Enums.UpdateStateEnum.kApplying
-
+        # Wait for the KApplyingState
         matcher_applying_obj = AttributeMatcher.from_callable(
             description=f"{step_number_s6} - Wait for kApplying",
-            matcher=matcher_applying
+            matcher=lambda report: report.value == Clusters.OtaSoftwareUpdateRequestor.Enums.UpdateStateEnum.kApplying
         )
 
-        subscription_attr_applying.await_all_expected_report_matches([matcher_applying_obj], timeout_sec=800.0)
-        logger.info(f'{step_number_s6}: Step #6.5 - kApplying observed — BDX transfer complete.')
-        subscription_attr_applying.cancel()
+        update_state_attr.await_all_expected_report_matches([matcher_applying_obj], timeout_sec=800.0)
+        logger.info(f'{step_number_s6}: Step #1.5 - kApplying observed — BDX transfer complete.')
+        update_state_attr.cancel()
 
         logger.info(f'{step_number_s6}: Step #6.5 - Killing provider (download done, DUT applying firmware).')
         self.current_provider_app_proc.terminate()
@@ -1018,7 +935,6 @@ class TC_SU_2_2(SoftwareUpdateBaseTest):
         )
 
         kIdle_s7 = Clusters.OtaSoftwareUpdateRequestor.Enums.UpdateStateEnum.kIdle
-        kDownloading_s7 = Clusters.OtaSoftwareUpdateRequestor.Enums.UpdateStateEnum.kDownloading
         kQuerying_s7 = Clusters.OtaSoftwareUpdateRequestor.Enums.UpdateStateEnum.kQuerying
 
         # Wait for the priming kIdle (DUT's current state on subscription start), then reset
@@ -1056,57 +972,17 @@ class TC_SU_2_2(SoftwareUpdateBaseTest):
             f'{step_number_s7}: Step #7.1 - Waiting for kQuerying→kIdle sequence '
             '(DUT should reject the same-version image without downloading)')
 
-        downloading_seen_s7 = [False]
-
-        def phase1_matcher_s7(report):
-            val = report.value
-            if val == kDownloading_s7:
-                downloading_seen_s7[0] = True
-                logger.info(f'{step_number_s7}: UNEXPECTED kDownloading — DUT started download of same-version image!')
-                return False
-            if val == kQuerying_s7:
-                logger.info(f'{step_number_s7}: kQuerying observed (expected)')
-                return True
-            if val == kIdle_s7:
-                logger.info(f'{step_number_s7}: kIdle observed (query cycle completed or too fast to capture kQuerying)')
-                return True
-            return False
-
-        phase1_matcher_s7_obj = AttributeMatcher.from_callable(
-            description=f"{step_number_s7} - post-announce kQuerying or kIdle, no kDownloading",
-            matcher=phase1_matcher_s7
+        # Check that the only visible UpdateState are kIdle or KQueryng, this avoid waiting for timeout when other values are present.
+        # Other UpdateState values fail the test
+        matcher_s6_obj = AttributeMatcher.from_callable(
+            description=f"{step_number_s7} - Post-announce check only for Update State kQuerying or kIdle, no kDownloading",
+            matcher=lambda report: report.value == kIdle_s7 or report.value == kQuerying_s7
         )
 
-        subscription_s7.await_all_expected_report_matches([phase1_matcher_s7_obj], timeout_sec=720.0)
-
-        # Phase 2: reset and wait for kIdle.
-        logger.info(f'{step_number_s7}: Phase 2: awaiting kIdle to confirm query cycle completed without download.')
-        subscription_s7.reset()
-
-        def phase2_matcher_s7(report):
-            val = report.value
-            if val == kDownloading_s7:
-                downloading_seen_s7[0] = True
-                logger.info(
-                    f'{step_number_s7}: UNEXPECTED kDownloading in Phase 2 — DUT started download of same-version image!')
-                return False
-            if val == kIdle_s7:
-                logger.info(f'{step_number_s7}: kIdle confirmed — query cycle completed without download.')
-                return True
-            return False
-
-        phase2_matcher_s7_obj = AttributeMatcher.from_callable(
-            description=f"{step_number_s7} - post-kQuerying kIdle, no kDownloading",
-            matcher=phase2_matcher_s7
-        )
-
-        subscription_s7.await_all_expected_report_matches([phase2_matcher_s7_obj], timeout_sec=90.0)
-        logger.info(f'{step_number_s7}: Step #7.2 - Query cycle fully completed after announce.')
+        # Waits all the period of time and matcher worked, if not fails on first different status.
+        subscription_s7.wait_all_final_values_reported_persisted([matcher_s6_obj], timeout_sec=720.0)
+        logger.info(f'{step_number_s7}: Step #6.2 - Query cycle completed after announce.')
         subscription_s7.cancel()
-
-        asserts.assert_false(downloading_seen_s7[0],
-                             f"{step_number_s7}: DUT started downloading the same-version image (kDownloading seen).")
-        logger.info(f"{step_number_s7}: No image transfer occurred (expected — DUT already on V2).")
 
 
 if __name__ == "__main__":
